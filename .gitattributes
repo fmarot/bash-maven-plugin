@@ -1,0 +1,2 @@
+# NON merge (pour forcer les devs à le faire à la main) et NON texte (pour ne pas avoir de moduif sur les sauts de ligne)
+*-plugin.xml -merge -text

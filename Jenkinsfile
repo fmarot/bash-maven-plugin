@@ -1,0 +1,3 @@
+@Library('classicJavaBuild') _
+
+classicJavaBuild()
