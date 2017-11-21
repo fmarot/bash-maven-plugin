@@ -60,11 +60,11 @@ public class RunMojo extends AbstractMojo
             throw new MojoFailureException("No script provided");
         }
 
-        if (System.getProperty("os.name").toUpperCase(Locale.ENGLISH).startsWith("WINDOWS")) {
-            getLog().error("The system property os.name is " + System.getProperty("os.name"));
-            getLog().error("Windows is not a compatible platform for bash-maven-plugin.");
-            throw new MojoFailureException("Can't execute bash-maven-plugin on Windows (yet).");
-        }
+//        if (System.getProperty("os.name").toUpperCase(Locale.ENGLISH).startsWith("WINDOWS")) {
+//            getLog().error("The system property os.name is " + System.getProperty("os.name"));
+//            getLog().error("Windows is not a compatible platform for bash-maven-plugin.");
+//            throw new MojoFailureException("Can't execute bash-maven-plugin on Windows (yet).");
+//        }
 
         boolean debugMode = getLog().isDebugEnabled();
 
