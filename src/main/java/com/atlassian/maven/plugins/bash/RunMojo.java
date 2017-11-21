@@ -15,13 +15,6 @@
  */
 package com.atlassian.maven.plugins.bash;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -31,102 +24,96 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Runs a bash script.
- *
  * @author Adrien Ragot
  */
-@Mojo(name = "run")
-public class RunMojo extends AbstractMojo
-{
 
-    @Parameter
-    String script;
+@Mojo(name = "run", aggregator = true, threadSafe = true)
+public class RunMojo extends AbstractMojo {
 
-    @Parameter
-    boolean skip;
+	@Parameter
+	String	script;
 
-    public void execute() throws MojoExecutionException, MojoFailureException
-    {
-        if (skip) {
-            getLog().info("Skipping bash-maven-plugin:run");
-            return;
-        }
-        if (StringUtils.isBlank(script))
-        {
-            getLog().error("No script provided");
-            throw new MojoFailureException("No script provided");
-        }
+	@Parameter
+	boolean	skip;
 
-//        if (System.getProperty("os.name").toUpperCase(Locale.ENGLISH).startsWith("WINDOWS")) {
-//            getLog().error("The system property os.name is " + System.getProperty("os.name"));
-//            getLog().error("Windows is not a compatible platform for bash-maven-plugin.");
-//            throw new MojoFailureException("Can't execute bash-maven-plugin on Windows (yet).");
-//        }
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		if (skip) {
+			getLog().info("Skipping bash-maven-plugin:run");
+			return;
+		}
+		if (StringUtils.isBlank(script)) {
+			getLog().error("No script provided");
+			throw new MojoFailureException("No script provided");
+		}
 
-        boolean debugMode = getLog().isDebugEnabled();
+		//        if (System.getProperty("os.name").toUpperCase(Locale.ENGLISH).startsWith("WINDOWS")) {
+		//            getLog().error("The system property os.name is " + System.getProperty("os.name"));
+		//            getLog().error("Windows is not a compatible platform for bash-maven-plugin.");
+		//            throw new MojoFailureException("Can't execute bash-maven-plugin on Windows (yet).");
+		//        }
 
-        getLog().info("Executing bash script" + (debugMode ? " in debug mode" : ""));
+		boolean debugMode = getLog().isDebugEnabled();
 
-        PrintWriter writer = null;
-        try
-        {
-            // Output to a file
-            File file = File.createTempFile("bash-maven-plugin", ".sh.tmp");
-            writer = new PrintWriter(new FileWriter(file));
-            writer.print(script);
-            writer.close();
+		getLog().info("Executing bash script" + (debugMode ? " in debug mode" : ""));
 
-            // Display the file
-            if (getLog().isInfoEnabled())
-            {
-                BufferedReader in = new BufferedReader(new FileReader(file));
-                String text;
-                while ((text = in.readLine()) != null)
-                {
-                    getLog().info("File contents: " + text);
-                }
-                in.close();
-                getLog().info("Execution - Debug is on");
-            }
+		PrintWriter writer = null;
+		try {
+			// Output to a file
+			File file = File.createTempFile("bash-maven-plugin", ".sh.tmp");
+			writer = new PrintWriter(new FileWriter(file));
+			writer.print(script);
+			writer.close();
 
-            // Now, execute
-            List<String> arguments = new ArrayList<String>();
-            arguments.add("bash");
-            if (debugMode) arguments.add("-x");
-            arguments.add(file.getAbsolutePath());
+			// Display the file
+			if (getLog().isInfoEnabled()) {
+				BufferedReader in = new BufferedReader(new FileReader(file));
+				String text;
+				while ((text = in.readLine()) != null) {
+					getLog().info("File contents: " + text);
+				}
+				in.close();
+				getLog().info("Execution - Debug is on");
+			}
 
-            ProcessBuilder ps = new ProcessBuilder(arguments);
-            ps.redirectErrorStream(true);
-            Process pr = ps.start();
-            BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null)
-            {
-                getLog().info("Execution: " + line);
-            }
-            pr.waitFor();
+			// Now, execute
+			List<String> arguments = new ArrayList<String>();
+			arguments.add("bash");
+			if (debugMode)
+				arguments.add("-x");
+			arguments.add(file.getAbsolutePath());
 
-            if (pr.exitValue() != 0)
-            {
-                getLog().error("Execution Exit Code: " + pr.exitValue());
-                throw new MojoFailureException("The execution exited with code " + pr.exitValue());
-            }
-        }
-        catch (IOException e)
-        {
-            if (writer != null)
-            {
-                writer.close();
-            }
-            throw new MojoExecutionException("Can't run", e);
-        }
-        catch (InterruptedException e)
-        {
-            Thread.currentThread().interrupt();
-            throw new MojoExecutionException("Can't run");
-        }
-    }
+			ProcessBuilder ps = new ProcessBuilder(arguments);
+			ps.redirectErrorStream(true);
+			Process pr = ps.start();
+			BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+			String line;
+			while ((line = in.readLine()) != null) {
+				getLog().info("Execution: " + line);
+			}
+			pr.waitFor();
+
+			if (pr.exitValue() != 0) {
+				getLog().error("Execution Exit Code: " + pr.exitValue());
+				throw new MojoFailureException("The execution exited with code " + pr.exitValue());
+			}
+		} catch (IOException e) {
+			if (writer != null) {
+				writer.close();
+			}
+			throw new MojoExecutionException("Can't run", e);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MojoExecutionException("Can't run");
+		}
+	}
 }
