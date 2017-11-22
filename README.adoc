@@ -1,16 +1,28 @@
-# What does it do?
+:toc: macro
+
+toc::[]
+
+= What does it do?
 
 Executes a bash script from Maven.
 
-# Why?
+= Why?
 
 It's an alternative to the AntRun Maven plugin. AntRun requires to describe the tasks in an XML format. Bash-maven-plugin makes it easier to debug.
 
-# How?
+= TODOs & ideas
+
+* windows (cmd.exe) / Linux compatibility:
+** add auto-detection of the presence of bash
+** add a "bat" definition in the xml as an alternative
+
+= How?
 
 See src/test/resources/pom.xml:
 
-    :::xml
+
+[source,xml]
+-------------------------------------------
         <build>
             <plugins>
                 <plugin>
@@ -53,10 +65,13 @@ See src/test/resources/pom.xml:
                 <scope>provided</scope>
             </dependency>
         </dependencies>
+-------------------------------------------
 
-# How to use
+= How to use
 
-    :::bash
+[source,bash]
+-------------------------------------------
+
         git clone git@bitbucket.org:atlassian/bash-maven-plugin.git
         cd bash-maven-plugin
 
@@ -66,3 +81,5 @@ See src/test/resources/pom.xml:
         # See an example
         cd src/test/resources
         mvn clean install
+        -------------------------------------------
+        
