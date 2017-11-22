@@ -1,3 +1,4 @@
 @Library('classicJavaBuild') _
 
-classicJavaBuild()
+boolean runsonarParam = false
+classicJavaBuild(runsonarParam)
