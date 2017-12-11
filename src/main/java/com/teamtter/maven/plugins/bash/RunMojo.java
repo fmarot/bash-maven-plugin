@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.atlassian.maven.plugins.bash;
+package com.teamtter.maven.plugins.bash;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,10 +22,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -34,34 +36,57 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Runs a bash script.
+ * 
  * @author Adrien Ragot
+ * @author Francois Marot
  */
-
 @Mojo(name = "run", aggregator = true, threadSafe = true)
 public class RunMojo extends AbstractMojo {
 
-	@Parameter
-	String	script;
+	@Parameter(required = false)
+	boolean skip;
 
-	@Parameter
-	boolean	skip;
+	@Parameter(required = false)
+	BashScript bashScript;
+
+	@Parameter(required = false)
+	BatScript batScript;
+
+	/** use bat when both types are available (typically msysGit/GitBash...) */
+	@Parameter(required = false, defaultValue = "false")
+	Boolean preferredTypeIsBat;
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip) {
 			getLog().info("Skipping bash-maven-plugin:run");
 			return;
 		}
-		if (StringUtils.isBlank(script)) {
-			getLog().error("No script provided");
-			throw new MojoFailureException("No script provided");
+
+		if (batScript != null && bashScript == null) {
+			runScript(batScript);
+		} else if (batScript != null && preferredTypeIsBat) {
+			runScript(batScript);
+		} else if (batScript != null && bashScript != null && ! preferredTypeIsBat) {
+			runScript(bashScript);
+		} else { // batScript is null
+			if (bashScript != null) {
+				runScript(bashScript);
+			} else {
+				getLog().error("Both bash and bat are undefined... Can not execute any script !");
+			}
 		}
+	}
+	
+	private void runScript(BashScript bashScript2) {
+		
+	}
 
-		//        if (System.getProperty("os.name").toUpperCase(Locale.ENGLISH).startsWith("WINDOWS")) {
-		//            getLog().error("The system property os.name is " + System.getProperty("os.name"));
-		//            getLog().error("Windows is not a compatible platform for bash-maven-plugin.");
-		//            throw new MojoFailureException("Can't execute bash-maven-plugin on Windows (yet).");
-		//        }
+	private void runScript(BatScript batScript2) {
+		// TODO : convert line endings just to make sure (pom may have been encooding with Linux LineBreaks
+	}
 
+	void toto() {
+		String script = "";
 		boolean debugMode = getLog().isDebugEnabled();
 
 		getLog().info("Executing bash script" + (debugMode ? " in debug mode" : ""));
@@ -74,16 +99,12 @@ public class RunMojo extends AbstractMojo {
 			writer.print(script);
 			writer.close();
 
-			// Display the file
-			if (getLog().isInfoEnabled()) {
-				BufferedReader in = new BufferedReader(new FileReader(file));
-				String text;
-				while ((text = in.readLine()) != null) {
-					getLog().info("File contents: " + text);
-				}
-				in.close();
-				getLog().info("Execution - Debug is on");
+			
+			try (StringReader scriptContent = new StringReader(script)) {
+				IOUtils.readLines(scriptContent).stream()
+					.forEach(line -> getLog().info("File contents: " + line));
 			}
+			
 
 			// Now, execute
 			List<String> arguments = new ArrayList<String>();
